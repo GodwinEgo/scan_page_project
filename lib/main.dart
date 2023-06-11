@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:stacked/stacked.dart';
 import 'video_preview_screen.dart';
 
 void main() {
@@ -22,16 +23,33 @@ class CameraView extends StatefulWidget {
   _CameraViewState createState() => _CameraViewState();
 }
 
-class _CameraViewState extends State<CameraView> {
+class _CameraViewState extends State<CameraView>
+    with SingleTickerProviderStateMixin {
   late CameraController _cameraController;
   late Future<void> _cameraInitializeFuture;
   bool cameraControllerInitialized = false;
   bool _isRecording = false;
+  late AnimationController _progressController;
+  late Animation<double> _progressAnimation;
 
   @override
   void initState() {
     super.initState();
     _initializeCamera();
+    _progressController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 10),
+    );
+    _progressAnimation =
+        Tween<double>(begin: 0, end: 1).animate(_progressController)
+          ..addListener(() {
+            setState(() {});
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              _stopVideoRecording();
+            }
+          });
   }
 
   Future<void> _initializeCamera() async {
@@ -53,6 +71,7 @@ class _CameraViewState extends State<CameraView> {
   @override
   void dispose() {
     _cameraController.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
@@ -63,8 +82,7 @@ class _CameraViewState extends State<CameraView> {
         setState(() {
           _isRecording = true;
         });
-        await Future.delayed(const Duration(seconds: 10));
-        await _stopVideoRecording();
+        _progressController.forward();
       } catch (e) {
         print('Error starting video recording: $e');
       }
@@ -74,6 +92,8 @@ class _CameraViewState extends State<CameraView> {
   Future<void> _stopVideoRecording() async {
     if (_cameraController.value.isRecordingVideo) {
       try {
+        _progressController.reset();
+        _progressController.stop();
         final XFile videoFile = await _cameraController.stopVideoRecording();
         setState(() {
           _isRecording = false;
@@ -98,6 +118,9 @@ class _CameraViewState extends State<CameraView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Camera View'),
+      ),
       body: FutureBuilder<void>(
         future: _cameraInitializeFuture,
         builder: (context, snapshot) {
@@ -108,6 +131,37 @@ class _CameraViewState extends State<CameraView> {
             return Stack(
               children: [
                 CameraPreview(_cameraController),
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                    child: Container(
+                      color: Colors.black.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: _progressAnimation.value * 200,
+                          left: 0,
+                          right: 0,
+                          height: 2,
+                          child: Container(
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             );
           } else {
@@ -115,15 +169,34 @@ class _CameraViewState extends State<CameraView> {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          if (_isRecording) {
-            _stopVideoRecording();
-          } else {
-            _startVideoRecording();
-          }
-        },
-        child: Icon(_isRecording ? Icons.stop : Icons.play_arrow),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              // Navigate to the video preview screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VideoPreviewScreen(
+                      videoPath: '/videos'), // Provide the videoPath here
+                ),
+              );
+            },
+            child: Icon(Icons.preview),
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton(
+            onPressed: () {
+              if (_isRecording) {
+                _stopVideoRecording();
+              } else {
+                _startVideoRecording();
+              }
+            },
+            child: Icon(_isRecording ? Icons.stop : Icons.play_arrow),
+          ),
+        ],
       ),
     );
   }
