@@ -1,73 +1,129 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:camera/camera.dart';
+import 'video_preview_screen.dart';
 
-void main() => runApp(const ScanPageApp());
+void main() {
+  runApp(MyApp());
+}
 
-class ScanPageApp extends StatelessWidget {
-  const ScanPageApp({Key? key}) : super(key: key);
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Scan Page',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const ScanPage(),
+      title: 'Camera View',
+      theme: ThemeData.dark(),
+      home: CameraView(),
     );
   }
 }
 
-class ScanPage extends StatefulWidget {
-  const ScanPage({Key? key}) : super(key: key);
+class CameraView extends StatefulWidget {
   @override
-  ScanPageState createState() => ScanPageState();
+  _CameraViewState createState() => _CameraViewState();
 }
 
-class ScanPageState extends State<ScanPage> {
-  String _scanResult = 'No scan result yet';
+class _CameraViewState extends State<CameraView> {
+  late CameraController _cameraController;
+  late Future<void> _cameraInitializeFuture;
+  bool cameraControllerInitialized = false;
+  bool _isRecording = false;
 
-  Future<void> _scanBarcode() async {
-    String scanResult;
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+  }
 
-    try {
-      scanResult = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', // Custom color for the scanner overlay
-        'Cancel', // Button text to cancel the scan
-        true, // Whether to show flash icon
-        ScanMode.BARCODE, // Specify the scan mode (e.g., QR_CODE, BARCODE)
-      );
-    } catch (e) {
-      scanResult = 'Failed to get the scan result: $e';
+  Future<void> _initializeCamera() async {
+    final cameras = await availableCameras();
+    final firstCamera = cameras.first;
+
+    _cameraController = CameraController(
+      firstCamera,
+      ResolutionPreset.high,
+    );
+
+    _cameraInitializeFuture = _cameraController.initialize();
+    if (mounted) {
+      setState(() {});
     }
+    cameraControllerInitialized = true;
+  }
 
-    if (!mounted) return;
+  @override
+  void dispose() {
+    _cameraController.dispose();
+    super.dispose();
+  }
 
-    setState(() {
-      _scanResult = scanResult;
-    });
+  Future<void> _startVideoRecording() async {
+    if (!_cameraController.value.isRecordingVideo) {
+      try {
+        await _cameraController.startVideoRecording();
+        setState(() {
+          _isRecording = true;
+        });
+        await Future.delayed(const Duration(seconds: 10));
+        await _stopVideoRecording();
+      } catch (e) {
+        print('Error starting video recording: $e');
+      }
+    }
+  }
+
+  Future<void> _stopVideoRecording() async {
+    if (_cameraController.value.isRecordingVideo) {
+      try {
+        final XFile videoFile = await _cameraController.stopVideoRecording();
+        setState(() {
+          _isRecording = false;
+        });
+
+        final String videoPath = videoFile.path;
+        print('Video saved at: $videoPath');
+
+        // Navigate to the video preview screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoPreviewScreen(videoPath: videoPath),
+          ),
+        );
+      } catch (e) {
+        print('Error stopping video recording: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan Page'),
+      body: FutureBuilder<void>(
+        future: _cameraInitializeFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            final size = MediaQuery.of(context).size;
+            final deviceRatio = size.width / size.height;
+
+            return Stack(
+              children: [
+                CameraPreview(_cameraController),
+              ],
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _scanResult,
-              style: const TextStyle(fontSize: 18.0),
-            ),
-            const SizedBox(height: 20.0),
-            ElevatedButton(
-              onPressed: _scanBarcode,
-              child: const Text('Scan Barcode'),
-            ),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (_isRecording) {
+            _stopVideoRecording();
+          } else {
+            _startVideoRecording();
+          }
+        },
+        child: Icon(_isRecording ? Icons.stop : Icons.play_arrow),
       ),
     );
   }
