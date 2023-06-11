@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:stacked/stacked.dart';
+import 'dart:ui';
+
 import 'video_preview_screen.dart';
 
 void main() {
@@ -38,7 +40,7 @@ class _CameraViewState extends State<CameraView>
     _initializeCamera();
     _progressController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 10),
+      duration: const Duration(seconds: 10),
     );
     _progressAnimation =
         Tween<double>(begin: 0, end: 1).animate(_progressController)
@@ -179,7 +181,8 @@ class _CameraViewState extends State<CameraView>
                 context,
                 MaterialPageRoute(
                   builder: (context) => VideoPreviewScreen(
-                      videoPath: '/videos'), // Provide the videoPath here
+                    videoPath: '/videos', // Provide the videoPath here
+                  ),
                 ),
               );
             },
