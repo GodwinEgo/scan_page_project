@@ -104,18 +104,17 @@ class _CameraViewState extends State<CameraView>
         final String videoPath = videoFile.path;
         print('Video saved at: $videoPath');
 
-        // Send video to server
-        _sendVideoToServer(videoPath);
+        // Navigate to the video preview screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoPreviewScreen(videoPath: videoPath),
+          ),
+        );
       } catch (e) {
         print('Error stopping video recording: $e');
       }
     }
-  }
-
-  void _sendVideoToServer(String videoPath) {
-    // Send the video file to the server
-    // TODO: Implement your server communication logic here
-    print('Sending video to server: $videoPath');
   }
 
   @override
@@ -134,55 +133,39 @@ class _CameraViewState extends State<CameraView>
             return Stack(
               children: [
                 CameraPreview(_cameraController),
-                Center(
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ClipRect(
-                      child: OverflowBox(
-                        alignment: Alignment.center,
-                        child: FittedBox(
-                          fit: BoxFit.fitWidth,
-                          child: Container(
-                            width: size.width,
-                            height: size.width / deviceRatio,
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                              child: Container(
-                                color: Colors.black.withOpacity(0.5),
+                Positioned.fill(
+                  child: Stack(
+                    children: [
+                      BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                        child: Container(
+                          color: Colors.black.withOpacity(0.5),
+                        ),
+                      ),
+                      Center(
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white, width: 2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                top: _progressAnimation.value * 200,
+                                left: 0,
+                                right: 0,
+                                height: 2,
+                                child: Container(
+                                  color: Colors.green,
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                Center(
-                  child: Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: _progressAnimation.value * 200,
-                          left: 0,
-                          right: 0,
-                          height: 2,
-                          child: Container(
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ],
