@@ -104,17 +104,18 @@ class _CameraViewState extends State<CameraView>
         final String videoPath = videoFile.path;
         print('Video saved at: $videoPath');
 
-        // Navigate to the video preview screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VideoPreviewScreen(videoPath: videoPath),
-          ),
-        );
+        // Send video to server
+        _sendVideoToServer(videoPath);
       } catch (e) {
         print('Error stopping video recording: $e');
       }
     }
+  }
+
+  void _sendVideoToServer(String videoPath) {
+    // Send the video file to the server
+    // TODO: Implement your server communication logic here
+    print('Sending video to server: $videoPath');
   }
 
   @override
@@ -133,11 +134,31 @@ class _CameraViewState extends State<CameraView>
             return Stack(
               children: [
                 CameraPreview(_cameraController),
-                Positioned.fill(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                    child: Container(
-                      color: Colors.black.withOpacity(0.5),
+                Center(
+                  child: Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ClipRect(
+                      child: OverflowBox(
+                        alignment: Alignment.center,
+                        child: FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: Container(
+                            width: size.width,
+                            height: size.width / deviceRatio,
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                              child: Container(
+                                color: Colors.black.withOpacity(0.5),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
