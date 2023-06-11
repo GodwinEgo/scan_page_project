@@ -1,6 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.scan_page_project">
-   <application
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
         android:label="scan_page_project"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
