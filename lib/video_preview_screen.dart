@@ -81,7 +81,7 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
     });
 
     try {
-      String apiUrl = 'http://192.168.1.6:8000/upload';
+      String apiUrl = '/video';
 
       FormData formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(widget.videoPath),
