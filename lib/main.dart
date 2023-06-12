@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:stacked/stacked.dart';
-import 'dart:ui';
-
 import 'video_preview_screen.dart';
 
 void main() {
@@ -25,8 +22,7 @@ class CameraView extends StatefulWidget {
   _CameraViewState createState() => _CameraViewState();
 }
 
-class _CameraViewState extends State<CameraView>
-    with SingleTickerProviderStateMixin {
+class _CameraViewState extends State<CameraView> with TickerProviderStateMixin {
   late CameraController _cameraController;
   late Future<void> _cameraInitializeFuture;
   bool cameraControllerInitialized = false;
@@ -40,7 +36,7 @@ class _CameraViewState extends State<CameraView>
     _initializeCamera();
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: Duration(seconds: 10),
     );
     _progressAnimation =
         Tween<double>(begin: 0, end: 1).animate(_progressController)
@@ -133,39 +129,12 @@ class _CameraViewState extends State<CameraView>
             return Stack(
               children: [
                 CameraPreview(_cameraController),
-                Positioned.fill(
-                  child: Stack(
-                    children: [
-                      BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                        child: Container(
-                          color: Colors.black.withOpacity(0.5),
-                        ),
-                      ),
-                      Center(
-                        child: Container(
-                          width: 200,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white, width: 2),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                top: _progressAnimation.value * 200,
-                                left: 0,
-                                right: 0,
-                                height: 2,
-                                child: Container(
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: LinearProgressIndicator(
+                    value: _progressAnimation.value,
                   ),
                 ),
               ],
@@ -185,8 +154,7 @@ class _CameraViewState extends State<CameraView>
                 context,
                 MaterialPageRoute(
                   builder: (context) => VideoPreviewScreen(
-                    videoPath: '/videos', // Provide the videoPath here
-                  ),
+                      videoPath: '/videos'), // Provide the videoPath here
                 ),
               );
             },

@@ -15,7 +15,6 @@ class VideoPreviewScreen extends StatefulWidget {
 }
 
 class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
-
   double progressValue = 0.0;
   int totalTime = 10;
   int currentTime = 0;
@@ -23,7 +22,6 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
   bool timerCompleted = false;
   bool retryVisible = false;
   String uploadButtonText = 'Upload Video';
-
 
   ChewieController? _chewieController;
   bool _uploading = false;
@@ -43,23 +41,24 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
     super.dispose();
   }
 
-  void startTime(){
-    time =   Timer.periodic(Duration(seconds: 1), (Timer time) {
+  void startTime() {
+    time = Timer.periodic(Duration(seconds: 1), (Timer time) {
       setState(() {
         retryVisible = false;
-        if(currentTime<totalTime){
+        if (currentTime < totalTime) {
           currentTime++;
-          progressValue = currentTime/totalTime;
-        }else{
+          progressValue = currentTime / totalTime;
+        } else {
           time.cancel();
-          timerCompleted=true;
+          timerCompleted = true;
         }
       });
     });
   }
 
   Future<void> _initializeVideoPlayer() async {
-    final videoPlayerController = VideoPlayerController.file(File(widget.videoPath));
+    final videoPlayerController =
+        VideoPlayerController.file(File(widget.videoPath));
     await videoPlayerController.initialize();
 
     setState(() {
@@ -119,7 +118,7 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
     });
   }
 
-  void uploadButtonFunction(){
+  void uploadButtonFunction() {
     setState(() {
       _uploading ? null : _uploadVideo;
     });
@@ -135,71 +134,69 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _chewieController != null && _chewieController!.videoPlayerController.value.isInitialized
+            _chewieController != null &&
+                    _chewieController!.videoPlayerController.value.isInitialized
                 ? Chewie(
-              controller: _chewieController!,
-            )
+                    controller: _chewieController!,
+                  )
                 : Center(
-              child: _chewieController != null && _chewieController!.videoPlayerController.value.hasError
-                  ? Text('Error loading video')
-                  : CircularProgressIndicator(),
-              //
-            ),
+                    child: _chewieController != null &&
+                            _chewieController!
+                                .videoPlayerController.value.hasError
+                        ? Text('Error loading video')
+                        : CircularProgressIndicator(),
+                  ),
 
             SizedBox(height: 32.0),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-
-                 //crossAxisAlignment: CrossAxisAlignment.center,
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Column(
                 children: [
                   ElevatedButton(
-                    onPressed: _uploading ? null : () {
-                      if (retryVisible) {
-                        // Retry button pressed, restart the process
-                        setState(() {
-                          retryVisible = false;
-                          uploadButtonText = 'Upload Video';
-                          startTime();
-                        });
-                      } else {
-                        // Upload button pressed
-                        _uploadVideo();
-                      }
-                    },
+                    onPressed: _uploading
+                        ? null
+                        : () {
+                            if (retryVisible) {
+                              // Retry button pressed, restart the process
+                              setState(() {
+                                retryVisible = false;
+                                uploadButtonText = 'Upload Video';
+                                startTime();
+                              });
+                            } else {
+                              // Upload button pressed
+                              _uploadVideo();
+                            }
+                          },
                     child: _uploading
                         ? CircularProgressIndicator()
                         : Text(retryVisible ? 'Retry' : uploadButtonText),
                   ),
-
                 ],
               ),
-                Column(
-                  children: [
-                    ElevatedButton(
-                      onPressed: (){
-                        Navigator.pop(context);
-                      },
-                      child
-                          : Text('Retake Video'),
-                    ),
-                  ],
-                ),
-              ]
-            ),
+              Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('Retake Video'),
+                  ),
+                ],
+              ),
+            ]),
 
             // SizedBox(height: 16.0),
             // Text(
             //     timerCompleted? '':'Please wait it may take a while, \nRetry in ${totalTime-currentTime} seconds'
             // ),
 
-
             SizedBox(height: 16.0),
             if (_scores.isNotEmpty)
               Column(
                 children: [
-                  Text('Results:', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
+                  Text('Results:',
+                      style: TextStyle(
+                          fontSize: 18.0, fontWeight: FontWeight.bold)),
                   SizedBox(height: 8.0),
                   ListView.builder(
                     shrinkWrap: true,
