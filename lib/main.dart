@@ -57,6 +57,7 @@ class _CameraViewState extends State<CameraView> with TickerProviderStateMixin {
     _cameraController = CameraController(
       firstCamera,
       ResolutionPreset.high,
+      enableAudio: false, // Disable audio recording
     );
 
     _cameraInitializeFuture = _cameraController.initialize();
